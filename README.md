@@ -9,7 +9,7 @@
 
 **Prerequisites**
 
-PILLOW
+Pillow
 ```bash
 pip install Pillow
 ```
