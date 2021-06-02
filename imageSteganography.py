@@ -52,8 +52,8 @@ def imageEncryption():
                 break
             except (FileNotFoundError, AttributeError):
                 print('File name does not exist, try again.')
-        selectedFont = ImageFont.truetype('arial.ttf')
-        binaryImage = Image.new('1', (300, 300), color='white')
+        selectedFont = ImageFont.truetype('arial.ttf', 20)
+        binaryImage = Image.new('1', (400, 400), color='white')
         image_editable = ImageDraw.Draw(binaryImage)
         image_editable.text((0, 0), lines, font=selectedFont)
     else:
