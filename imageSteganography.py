@@ -1,6 +1,8 @@
 from PIL import Image, PngImagePlugin, ImageFont, ImageDraw
 import easyocr
 import hashlib
+from Crypto.Cipher import AES
+from Crypto import Random
 
 def imageEncryption():
     def hideImage(colorImage, binaryImage):
@@ -42,7 +44,7 @@ def imageEncryption():
             break
         except (FileNotFoundError, AttributeError):
             print('File name does not exist, try again.')
-    isTextMode = input("To read text from txt file type 'y', else type 'n': ")
+    isTextMode = input("To read text from txt file type 'y', else type 'n' to use a binary image: ")
     if isTextMode in ['y', 'Y']:
         while True:
             textFileName = input("Text file name: ")
@@ -64,12 +66,30 @@ def imageEncryption():
                 break
             except (FileNotFoundError, AttributeError):
                 print('File name does not exist, try again.')
-    imageTuple = hideImage(colorImage, binaryImage)
-    saveImageName = input("Enter image file name to save as: ")
-    Image.Image.save(imageTuple[0],saveImageName + '.png', pnginfo= imageTuple[1])
+    stegoImage, info = hideImage(colorImage, binaryImage)
+    isStegoEncrypt = input("To encrypt the stegonographic image, type 'y', else type 'n': ")
+    if isStegoEncrypt in ['y', 'Y']:
+        key = Random.new().read(AES.block_size)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(key, AES.MODE_CFB, iv)
+        stegoBytes = stegoImage.tobytes()
+        stegoBytes = cipher.encrypt(stegoBytes)
+        stegoImage.frombytes(stegoBytes)
+        info.add_text('key', key.decode('latin1')) # latin1 is compatible with aes key
+        info.add_text('iv', iv.decode('latin1'))
+    if isTextMode in ['y', 'Y']: info.add_text('ocr', 'yes') # Ask if to do ocr only if necessary
+    saveImageName = input("Enter image file name to save as (without extension): ")
+    Image.Image.save(stegoImage, saveImageName + '.png', pnginfo = info)
 
 def decryptImage():
     def extractImage(stegoImage):
+        if 'key' in stegoImage.text:
+            print('Encrypted stegonographic image has been detected. Decrypting...')
+            key, iv = stegoImage.text['key'].encode('latin1'), stegoImage.text['iv'].encode('latin1')
+            cipher = AES.new(key, AES.MODE_CFB, iv)
+            stegoBytes = stegoImage.tobytes()
+            stegoBytes = cipher.decrypt(stegoBytes)
+            stegoImage.frombytes(stegoBytes)
         secretImage = []
         red, green, blue = Image.Image.split(stegoImage)
         newRed = [bin(i) for i in red.getdata()]
@@ -106,22 +126,23 @@ def decryptImage():
         except (FileNotFoundError, AttributeError):
             print('File name does not exist, try again.')
     secretImage = extractImage(stegoImage)
-    secretImageName = input("Enter image file name to save as: ")
+    secretImageName = input("Enter image file name to save as (without extension): ")
     secretImage.save(secretImageName + '.png')
-    ocrAnswer = input("To extract text from the secret image, type 'y', else type 'n': ")
-    if ocrAnswer in ['y', 'Y']:
-        reader = easyocr.Reader(['en'], gpu=False)
-        result = reader.readtext(secretImageName + '.png')
-        textResult = ''
-        if len(result):
-            for i in result:
-                textResult = textResult + i[1] + '\n'
-            textFileName = input("Enter text file name: ")
-            with open(textFileName, 'w') as textFile:
-                textFile.write(textResult)
-            print("The text has been extracted and written into " + textFileName)
-        else:
-            print("No text detected in the image")
+    if 'ocr' in stegoImage.text:
+        ocrAnswer = input("To extract text from the secret image, type 'y', else type 'n': ")
+        if ocrAnswer in ['y', 'Y']:
+            reader = easyocr.Reader(['en'], gpu=False)
+            result = reader.readtext(secretImageName + '.png')
+            textResult = ''
+            if len(result):
+                for i in result:
+                    textResult = textResult + i[1] + '\n'
+                textFileName = input("Enter text file name (without txt extension): ")
+                with open(textFileName + '.txt', 'w') as textFile:
+                    textFile.write(textResult)
+                print("The text has been extracted and written into " + textFileName + ".txt")
+            else:
+                print("No text detected in the image")
 
 
 
