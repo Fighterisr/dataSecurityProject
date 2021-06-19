@@ -1,5 +1,4 @@
 from PIL import Image, PngImagePlugin, ImageFont, ImageDraw
-import easyocr
 import hashlib
 from Crypto.Cipher import AES
 from Crypto import Random
@@ -131,12 +130,13 @@ def decryptImage():
     if 'ocr' in stegoImage.text:
         ocrAnswer = input("To extract text from the secret image, type 'y', else type 'n': ")
         if ocrAnswer in ['y', 'Y']:
+            import easyocr
             reader = easyocr.Reader(['en'], gpu=False)
             result = reader.readtext(secretImageName + '.png')
             textResult = ''
             if len(result):
                 for i in result:
-                    textResult = textResult + i[1] + '\n'
+                    textResult = textResult + i[1] + '\n' # retrieve the text only
                 textFileName = input("Enter text file name (without txt extension): ")
                 with open(textFileName + '.txt', 'w') as textFile:
                     textFile.write(textResult)
