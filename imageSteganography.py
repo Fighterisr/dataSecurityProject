@@ -66,7 +66,7 @@ def imageEncryption():
             except (FileNotFoundError, AttributeError):
                 print('File name does not exist, try again.')
     stegoImage, info = hideImage(colorImage, binaryImage)
-    isStegoEncrypt = input("To encrypt the stegonographic image, type 'y', else type 'n': ")
+    isStegoEncrypt = input("To encrypt the steganographic image, type 'y', else type 'n': ")
     if isStegoEncrypt in ['y', 'Y']:
         key = Random.new().read(AES.block_size)
         iv = Random.new().read(AES.block_size)
@@ -83,7 +83,7 @@ def imageEncryption():
 def decryptImage():
     def extractImage(stegoImage):
         if 'key' in stegoImage.text:
-            print('Encrypted stegonographic image has been detected. Decrypting...')
+            print('Encrypted steganographic image has been detected. Decrypting...')
             key, iv = stegoImage.text['key'].encode('latin1'), stegoImage.text['iv'].encode('latin1')
             cipher = AES.new(key, AES.MODE_CFB, iv)
             stegoBytes = stegoImage.tobytes()
@@ -118,7 +118,7 @@ def decryptImage():
         return img
 
     while True:
-        stegoImageName = input("Stegonographic image file name: ")
+        stegoImageName = input("steganographic image file name: ")
         try:
             stegoImage = Image.open(stegoImageName)
             break

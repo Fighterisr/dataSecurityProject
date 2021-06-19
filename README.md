@@ -24,7 +24,7 @@ pip install pycryptodome
 **Instructions:**
 Run menu.py and choose an option from the menu by typing its number and press enter:
 1. to hide a binary image in a color image
-2. to extract a binary image from a stegonographic image
+2. to extract a binary image from a steganographic image
 3. to compare two secret image and find if they are same image
 
 **Notes:**
